@@ -708,34 +708,72 @@ class PawMatchApp {
         content.innerHTML = `
             <div class="container">
                 <h1 class="mb-3">Mis Solicitudes de Adopción</h1>
-                <div id="adoptions-list" class="grid grid-2"></div>
+                <div id="adoptions-list"></div>
             </div>
         `;
 
         try {
-            const adoptions = await PawMatchAPI.getMyAdoptions();
+            const result = await PawMatchAPI.getMyAdoptions();
+            const adoptions = Array.isArray(result) ? result : result.data || [];
+
             if (adoptions.length === 0) {
                 document.getElementById('adoptions-list').innerHTML = '<p class="text-muted">No tienes solicitudes de adopción</p>';
-            } else {
-                const html = adoptions.map(adoption => `
-                    <div class="adoption-card">
-                        <div class="adoption-card-inner">
-                            <img src="${adoption.pet_image}" alt="${adoption.pet_name}" class="adoption-card-image">
-                            <div style="flex: 1;">
-                                <h4>${adoption.pet_name}</h4>
-                                <p class="text-muted">${adoption.message || 'Sin mensaje'}</p>
-                                <p class="text-muted">
-                                    Estado: <span class="badge ${adoption.status === 'approved' ? 'badge-success' : ''}">${adoption.status}</span>
+                return;
+            }
+
+            const html = adoptions.map(adoption => {
+                const statusColor = adoption.status === 'approved' ? '#4caf50' :
+                                   adoption.status === 'rejected' ? '#f44336' : '#2196f3';
+                const showCancel = adoption.status === 'pending';
+
+                return `
+                    <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+                        <div style="display: grid; grid-template-columns: 120px 1fr; gap: 1rem;">
+                            <img src="${adoption.pet_image}" alt="${adoption.pet_name}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                            <div>
+                                <h3 style="margin: 0 0 0.5rem 0;">${adoption.pet_name}</h3>
+                                <p style="margin: 0.3rem 0; color: #666; font-size: 0.9rem;">${adoption.message || 'Sin mensaje'}</p>
+                                <p style="margin: 0.3rem 0; color: #666; font-size: 0.9rem;">
+                                    <strong>Estado:</strong>
+                                    <span style="background: ${statusColor}; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${adoption.status}</span>
                                 </p>
-                                <small class="text-muted">Solicitado: ${new Date(adoption.created_at).toLocaleDateString()}</small>
+                                <p style="margin: 0.3rem 0; color: #999; font-size: 0.85rem;">Solicitado: ${new Date(adoption.created_at).toLocaleDateString()}</p>
+
+                                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                                    ${showCancel ? `<button class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.85rem;" id="cancel-${adoption.id}">Cancelar Solicitud</button>` : `<span style="color: #999; font-size: 0.85rem;">No se puede cancelar solicitudes ${adoption.status}</span>`}
+                                </div>
                             </div>
                         </div>
                     </div>
-                `).join('');
-                document.getElementById('adoptions-list').innerHTML = html;
-            }
+                `;
+            }).join('');
+
+            document.getElementById('adoptions-list').innerHTML = html;
+
+            // Agregar event listeners para los botones de cancelar
+            adoptions.forEach(adoption => {
+                const btn = document.getElementById(`cancel-${adoption.id}`);
+                if (btn) {
+                    btn.addEventListener('click', () => this.cancelAdoption(adoption.id, adoption.pet_name));
+                }
+            });
         } catch (error) {
-            document.getElementById('adoptions-list').innerHTML = '<p class="text-danger">Error al cargar solicitudes</p>';
+            console.error('Error:', error);
+            document.getElementById('adoptions-list').innerHTML = `<p class="text-danger">Error al cargar solicitudes: ${error.message}</p>`;
+        }
+    }
+
+    async cancelAdoption(adoptionId, petName) {
+        const confirmed = confirm(`¿Estás seguro de que deseas cancelar la solicitud de adopción de "${petName}"?`);
+        if (!confirmed) return;
+
+        try {
+            await PawMatchAPI.deleteAdoption(adoptionId);
+            this.showAlert('Solicitud de adopción cancelada correctamente', 'success');
+            await this.renderMyAdoptions();
+        } catch (error) {
+            this.showAlert('Error al cancelar solicitud: ' + error.message, 'danger');
+            console.error('Error:', error);
         }
     }
 
