@@ -1,5 +1,3 @@
-// PawMatch Main Application
-
 class PawMatchApp {
     constructor() {
         this.currentPage = 'login';
@@ -14,9 +12,7 @@ class PawMatchApp {
         this.setupEventListeners();
         this.render();
 
-        // Check if user is already logged in
         if (this.currentUser && this.currentUser.id) {
-            // Recuperar la página anterior del localStorage
             const savedPage = localStorage.getItem('pawmatch_current_page');
             if (savedPage && savedPage !== 'login' && savedPage !== 'register') {
                 this.currentPage = savedPage;
@@ -31,18 +27,15 @@ class PawMatchApp {
     }
 
     setupEventListeners() {
-        // Navigation
         document.addEventListener('click', (e) => {
             if (e.target.hasAttribute('data-page')) {
                 const page = e.target.getAttribute('data-page');
                 this.changePage(page);
-                // Close mobile menu after navigation
                 const navMenu = document.querySelector('.navbar-nav');
                 if (navMenu) navMenu.classList.remove('open');
             }
         });
 
-        // Mobile menu toggle
         document.addEventListener('click', (e) => {
             if (e.target.id === 'navbar-toggle') {
                 const navMenu = document.querySelector('.navbar-nav');
@@ -52,7 +45,6 @@ class PawMatchApp {
             }
         });
 
-        // Modal handling
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.classList.remove('show');
@@ -64,7 +56,6 @@ class PawMatchApp {
     }
 
     async changePage(page) {
-        // Check authentication
         if (page !== 'login' && page !== 'register' && !this.currentUser?.id) {
             this.currentPage = 'login';
             this.render();
@@ -73,11 +64,9 @@ class PawMatchApp {
         }
 
         this.currentPage = page;
-        // Guardar la página actual en localStorage
         localStorage.setItem('pawmatch_current_page', page);
         this.render();
 
-        // Load page-specific logic
         switch (page) {
             case 'home':
                 this.renderHome();
@@ -134,7 +123,6 @@ class PawMatchApp {
                 break;
             case 'pet-detail':
                 app.innerHTML = this.renderMainLayout();
-                // Handled separately
                 break;
             case 'test':
                 app.innerHTML = this.renderMainLayout();
@@ -309,13 +297,11 @@ class PawMatchApp {
             </div>
         `;
 
-        // Load featured pets
         try {
             const result = await PawMatchAPI.getPets({ limit: 6 });
             const petsHtml = result.data.slice(0, 6).map(pet => this.renderPetCard(pet)).join('');
             document.getElementById('featured-pets').innerHTML = petsHtml;
         } catch (error) {
-            console.error('Error loading pets:', error);
         }
     }
 
@@ -501,20 +487,17 @@ class PawMatchApp {
             modal.innerHTML = modalHtml;
             document.body.appendChild(modal);
 
-            // Handler para cerrar modal con el botón close
             modal.querySelector('.modal-close').addEventListener('click', (e) => {
                 e.stopPropagation();
                 modal.remove();
             });
 
-            // Handler para cerrar modal al hacer click fuera
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.remove();
                 }
             });
 
-            // Handler para el botón de adopción
             const adoptBtn = modal.querySelector('#adopt-btn');
             if (adoptBtn) {
                 adoptBtn.addEventListener('click', async (e) => {
@@ -534,7 +517,6 @@ class PawMatchApp {
                         adoptBtn.disabled = false;
                         adoptBtn.textContent = 'Solicitar Adopción';
                         this.showAlert('Error: ' + error.message, 'danger');
-                        console.error('Error:', error);
                     }
                 });
             }
@@ -750,7 +732,6 @@ class PawMatchApp {
 
             document.getElementById('adoptions-list').innerHTML = html;
 
-            // Agregar event listeners para los botones de cancelar
             adoptions.forEach(adoption => {
                 const btn = document.getElementById(`cancel-${adoption.id}`);
                 if (btn) {
@@ -758,7 +739,6 @@ class PawMatchApp {
                 }
             });
         } catch (error) {
-            console.error('Error:', error);
             document.getElementById('adoptions-list').innerHTML = `<p class="text-danger">Error al cargar solicitudes: ${error.message}</p>`;
         }
     }
@@ -773,7 +753,6 @@ class PawMatchApp {
             await this.renderMyAdoptions();
         } catch (error) {
             this.showAlert('Error al cancelar solicitud: ' + error.message, 'danger');
-            console.error('Error:', error);
         }
     }
 
@@ -812,7 +791,6 @@ class PawMatchApp {
         paginationDiv.innerHTML = html;
     }
 
-    // Event Handlers
     attachLoginHandlers() {
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -829,7 +807,6 @@ class PawMatchApp {
             }
         });
 
-        // Setup logout button
         document.addEventListener('click', (e) => {
             if (e.target.id === 'btn-logout') {
                 PawMatchAPI.logout();
@@ -885,7 +862,6 @@ class PawMatchApp {
 
             StorageHelper.setCompatibilityTest(test);
 
-            // Calculate score and recommendations
             let score = 0;
             let recommendations = [];
 
@@ -902,7 +878,6 @@ class PawMatchApp {
             if (test.activity === 'bajo') recommendations.push('Busca mascotas con baja energía como gatos o conejos');
             if (test.housing === 'apartment') recommendations.push('Los gatos y conejos son ideales para apartamentos');
 
-            // Show results
             const resultsDiv = document.getElementById('test-results');
             const color = score > 6 ? 'success' : score > 3 ? 'warning' : 'danger';
             resultsDiv.innerHTML = `
@@ -912,7 +887,6 @@ class PawMatchApp {
                 </div>
             `;
 
-            // Load matching pets
             try {
                 const result = await PawMatchAPI.getPets({
                     species: test.preference,
@@ -927,7 +901,6 @@ class PawMatchApp {
                     resultsDiv.innerHTML += html;
                 }
             } catch (error) {
-                console.error('Error loading pets:', error);
             }
         });
     }
@@ -1147,7 +1120,6 @@ class PawMatchApp {
 
             reportsList.innerHTML = html;
 
-            // Add markers to map
             result.data.forEach(report => {
                 const icon = report.status === 'rescued' ? '✓' : '!';
                 const color = report.status === 'rescued' ? '#4CAF50' : '#FF6B35';
@@ -1240,7 +1212,6 @@ class PawMatchApp {
             }
         });
 
-        // Add image preview for new reports
         document.getElementById('report-image').addEventListener('change', (e) => {
             if (e.target.files[0]) {
                 const reader = new FileReader();
@@ -1409,7 +1380,6 @@ class PawMatchApp {
 
             document.getElementById('edit-modal').classList.add('show');
 
-            // Handle file input preview
             document.getElementById('edit-image').addEventListener('change', (e) => {
                 if (e.target.files[0]) {
                     const reader = new FileReader();
@@ -1421,13 +1391,11 @@ class PawMatchApp {
                 }
             });
 
-            // Handle form submit
             document.getElementById('edit-report-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.saveEditReport();
             });
 
-            // Handle modal close
             document.querySelector('.modal-close').addEventListener('click', () => {
                 this.closeEditModal();
             });
@@ -1461,7 +1429,6 @@ class PawMatchApp {
                 phone: document.getElementById('edit-phone').value
             };
 
-            // Only include image if a new one was selected
             if (imageData) {
                 updateData.image = imageData;
             }
@@ -1585,7 +1552,6 @@ class PawMatchApp {
             </div>
         `;
 
-        // Tab switching
         document.querySelectorAll('[data-admin-tab]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const tabName = e.target.getAttribute('data-admin-tab');
@@ -1594,7 +1560,6 @@ class PawMatchApp {
             });
         });
 
-        // Pet form
         document.getElementById('btn-add-pet').addEventListener('click', () => {
             document.getElementById('pet-modal-title').textContent = 'Agregar Mascota';
             document.getElementById('pet-form').reset();
@@ -1626,7 +1591,6 @@ class PawMatchApp {
             }
         });
 
-        // Load admin data
         await this.loadAdminPets();
         await this.loadAdminAdoptions();
         await this.loadAdminReports();
@@ -1832,5 +1796,4 @@ class PawMatchApp {
     }
 }
 
-// Initialize app
 const app = new PawMatchApp();

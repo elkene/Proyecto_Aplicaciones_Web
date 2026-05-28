@@ -1,10 +1,7 @@
-// PawMatch API Client
-
-// Detectar automáticamente la URL base
 const getApiBaseUrl = () => {
     const currentUrl = window.location.href;
-    const protocol = window.location.protocol; // http: o https:
-    const host = window.location.host; // includes hostname and port
+    const protocol = window.location.protocol;
+    const host = window.location.host;
 
     return `${protocol}//${host}/PawMatchV2/backend`;
 };
@@ -62,12 +59,10 @@ class PawMatchAPI {
 
             return result;
         } catch (error) {
-            console.error('API Error:', error);
             throw error;
         }
     }
 
-    // Auth endpoints
     static async register(email, password, name) {
         const result = await this.request('users/register', 'POST', {
             email,
@@ -108,7 +103,6 @@ class PawMatchAPI {
         });
     }
 
-    // Pet endpoints
     static async getPets(filters = {}) {
         let query = '?';
         if (filters.page) query += `page=${filters.page}&`;
@@ -118,7 +112,7 @@ class PawMatchAPI {
         if (filters.energy) query += `energy=${filters.energy}&`;
         if (filters.search) query += `search=${filters.search}&`;
 
-        query = query.slice(0, -1); // Remove trailing &
+        query = query.slice(0, -1);
         return await this.request(`pets${query}`, 'GET');
     }
 
@@ -138,7 +132,6 @@ class PawMatchAPI {
         return await this.request(`pets/${id}`, 'DELETE');
     }
 
-    // Adoption endpoints
     static async createAdoption(petId, message = '') {
         return await this.request('adoptions', 'POST', {
             pet_id: petId,
@@ -164,7 +157,6 @@ class PawMatchAPI {
         return await this.request(`adoptions/${id}`, 'DELETE');
     }
 
-    // Donation endpoints
     static async createDonation(amount, currency = 'MXN', message = '') {
         return await this.request('donations', 'POST', {
             amount,
@@ -181,7 +173,6 @@ class PawMatchAPI {
         return await this.request('donations/stats', 'GET');
     }
 
-    // Reported Animals endpoints
     static async createReport(type, description, latitude, longitude, phone = '', image = '') {
         return await this.request('reported-animals', 'POST', {
             type,
@@ -235,7 +226,6 @@ class PawMatchAPI {
     }
 }
 
-// Local Storage helpers
 const StorageHelper = {
     setCompatibilityTest(data) {
         localStorage.setItem('pawmatch_compat_test', JSON.stringify(data));
