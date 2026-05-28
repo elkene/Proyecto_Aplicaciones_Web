@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /PawMatchV2/
+
+    # Allow direct access to files and directories that exist
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Rewrite API requests to backend
+    RewriteCond %{REQUEST_URI} ^/PawMatchV2/backend
+    RewriteRule ^backend/(.*)$ backend/index.php [QSA,L]
+
+    # Rewrite public requests to index.html
+    RewriteRule ^(?!backend/)(.*)$ public/index.html [QSA,L]
+</IfModule>
